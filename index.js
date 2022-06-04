@@ -40,26 +40,34 @@ if (!rules || !Array.isArray(rules)) {
   for (let light of lights) {
     facts[light.name] = {on: light.on, hue: light.hue, brightness: light.brightness};
   }
-  console.log(facts);
+
+  const groups = await client.groups.getAll();
+  for (let group of groups) {
+    let groupName = group.name;
+    // de-dupe if the group and a light share a name
+    if(facts[groupName]) {
+      groupName = `Group ${groupName}`;
+    }
+    facts[groupName] = {anyOn: group.anyOn, allOn: group.allOn};
+  }
+
+  console.log('All facts', facts);
 
   const { events } = await engine.run(facts);
-  console.log('events', events);
 
   for (let event of events) {
-    console.log(event);
+    console.log('processing event', event);
     if (event.type === 'on') {
       const light = lights.find(light => light.name === event.params.light);
+      if(event.params.brightness){
+        light.brightness = Math.max(0, Math.min(255, event.params.brightness));
+      }      
       light.on = true;
       await client.lights.save(light);
     }
     else if (event.type === 'off') {
       const light = lights.find(light => light.name === event.params.light);
       light.on = false;
-      await client.lights.save(light);
-    }
-    else if (event.type === 'brightness') {
-      const light = lights.find(light => light.name === event.params.light);
-      light.brightness = Math.max(0, Math.min(255, event.params.brightness));
       await client.lights.save(light);
     }
     else{
