@@ -1,5 +1,7 @@
 const huejay = require('huejay');
 const { Engine } = require('json-rules-engine');
+const luxon = require('luxon');
+const DateTime = luxon.DateTime;
 
 const bridgeConfig = require('./config').bridge;
 const rules = require('./config').rules;
@@ -51,12 +53,24 @@ if (!rules || !Array.isArray(rules)) {
     facts[groupName] = {anyOn: group.anyOn, allOn: group.allOn};
   }
 
-  console.log('All facts', facts);
+  // time facts for writing time-dependent conditions
+  const now = DateTime.now();
+  facts.year = now.year;
+  facts.month = now.month;
+  facts.day = now.day;
+  facts.hour = now.hour;
+  facts.minute = now.minute;
+  facts.second = now.second;
+  facts.dayOfWeek = now.weekdayShort;
+  facts.weekNumber = now.weekNumber;
+  facts.isoTime = now.toISOTime();
+
+  console.info('All facts', facts);
 
   const { events } = await engine.run(facts);
 
   for (let event of events) {
-    console.log('processing event', event);
+    console.debug('processing event', event);
     if (event.type === 'on') {
       const light = lights.find(light => light.name === event.params.light);
       if(event.params.brightness){

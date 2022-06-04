@@ -18,6 +18,7 @@
   "homepage": "https://github.com/cgarethc/hue-rules#readme",
   "dependencies": {
     "huejay": "^1.9.0",
-    "json-rules-engine": "^6.1.2"
+    "json-rules-engine": "^6.1.2",
+    "luxon": "^2.4.0"
   }
 }
