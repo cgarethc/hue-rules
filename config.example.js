@@ -33,7 +33,8 @@ exports.rules = [
       type: 'on',
       params: {
         light: 'Lounge light',
-        brightness: 255 // 0-255 are the valid values
+        brightness: 255, // 0-255 are valid values,
+        colorTemp: 200 // 153-500 are valid values
       }
     }
   },

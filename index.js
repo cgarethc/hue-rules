@@ -47,7 +47,11 @@ const connectAndExecute = async () => {
   const lights = await client.lights.getAll();
   const facts = {};
   for (let light of lights) {
-    facts[light.name] = { on: light.on, hue: light.hue, brightness: light.brightness };
+    facts[light.name] = { 
+      on: light.on, reachable: light.reachable, 
+      hue: light.hue, saturation: light.saturation,
+      brightness: light.brightness, colorTemp: light.colorTemp
+    };
   }
 
   const groups = await client.groups.getAll();
@@ -82,6 +86,15 @@ const connectAndExecute = async () => {
       const light = lights.find(light => light.name === event.params.light);
       if (event.params.brightness) {
         light.brightness = Math.max(0, Math.min(255, event.params.brightness));
+      }
+      if (event.params.hue) {
+        light.hue = Math.max(0, Math.min(65535, event.params.brightness));
+      }
+      if (event.params.saturation) {
+        light.saturation = Math.max(0, Math.min(254, event.params.brightness));
+      }
+      if (event.params.colorTemp) {
+        light.colorTemp = Math.max(153, Math.min(500, event.params.brightness));
       }
       light.on = true;
       await client.lights.save(light);
