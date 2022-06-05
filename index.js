@@ -2,6 +2,12 @@ const huejay = require('huejay');
 const { Engine } = require('json-rules-engine');
 const luxon = require('luxon');
 const DateTime = luxon.DateTime;
+const fs = require('fs');
+
+if(!fs.existsSync('./config.js')) {
+  console.log('Please create a config.js file in the root directory with your bridge configuration and rules: see config.example.js');
+  process.exit(2);
+}
 
 const bridgeConfig = require('./config').bridge;
 const rules = require('./config').rules;
