@@ -6,16 +6,26 @@ Rules-based automation for Philips Hue bridge.
 
 Take a copy of `config.example.js` and name it `config.js`. The example config includes documentation.The key initial settings are the Hue bridge IP or hostname and the username. The Hue API uses a generated username: a random-seeming 40 character alphanumeric string.
 
+```sh
+npm install
+cp config.example.js config.js
+node index.js
+```
+
 ## Configuration
 
 The rules engine is [JSON-rules-engine on Github](https://github.com/cachecontrol/json-rules-engine). The config includes a block for specifying an array of rules in that format.
 
-There are two event types that can be included: "on" and "off". Each needs the name of a light.
+### Events
+
+There are two event types that can be included: "on" and "off". Each needs the name of one or more lights.
 The "on" event can include:
 
 * a brightness
 * a colorTemp (for white to yellow lights)
 * hue and saturation (for full colour lights)
+
+### Conditions
 
 The conditions are based on facts. The facts include the state of the lights and rooms, and information about the current time. E.g.:
 
@@ -67,3 +77,27 @@ The conditions are based on facts. The facts include the state of the lights and
   isoTime: '10:43:39.270+12:00'
 }
 ```
+
+Here's a set of conditions that will fire the event if the Lounge lamp is on and it's after 11am
+
+```javascript
+conditions: {
+      all: [
+        {
+          fact: 'Lounge lamp',
+          operator: 'equal',
+          value: true,
+          path: '$.on'
+        },
+        {
+          fact: 'hour',
+          operator: 'greaterThanInclusive',
+          value: 11
+        }
+      ]
+    }
+```
+
+## License
+
+MIT License

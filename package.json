@@ -3,15 +3,12 @@
   "version": "1.0.0",
   "description": "Rules-based automation for Philips Hue bridge",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cgarethc/hue-rules.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/cgarethc/hue-rules/issues"
   },

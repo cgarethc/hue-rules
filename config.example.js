@@ -31,7 +31,7 @@ exports.rules = [
     },
     event: {
       type: 'on',
-      params: {
+      params: { // the params can be specified for one light
         light: 'Lounge light',
         brightness: 255, // 0-255 are valid values,
         colorTemp: 200 // 153-500 are valid values
@@ -49,8 +49,12 @@ exports.rules = [
     },
     event: {
       type: 'off',
-      params: {
-        light: 'Lounge light'        
+      params: { // params can also be specified for multiple lights
+        lights: [
+          { light: 'Lounge light' },
+          { light: 'Dining light' }
+        ]
+
       }
     }
   }

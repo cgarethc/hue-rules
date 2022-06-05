@@ -47,8 +47,8 @@ const connectAndExecute = async () => {
   const lights = await client.lights.getAll();
   const facts = {};
   for (let light of lights) {
-    facts[light.name] = { 
-      on: light.on, reachable: light.reachable, 
+    facts[light.name] = {
+      on: light.on, reachable: light.reachable,
       hue: light.hue, saturation: light.saturation,
       brightness: light.brightness, colorTemp: light.colorTemp
     };
@@ -81,31 +81,49 @@ const connectAndExecute = async () => {
   const { events } = await engine.run(facts);
 
   for (let event of events) {
-    console.debug('processing event', event);
-    if (event.type === 'on') {
-      const light = lights.find(light => light.name === event.params.light);
-      if (event.params.brightness) {
-        light.brightness = Math.max(0, Math.min(255, event.params.brightness));
-      }
-      if (event.params.hue) {
-        light.hue = Math.max(0, Math.min(65535, event.params.brightness));
-      }
-      if (event.params.saturation) {
-        light.saturation = Math.max(0, Math.min(254, event.params.brightness));
-      }
-      if (event.params.colorTemp) {
-        light.colorTemp = Math.max(153, Math.min(500, event.params.brightness));
-      }
-      light.on = true;
-      await client.lights.save(light);
-    }
-    else if (event.type === 'off') {
-      const light = lights.find(light => light.name === event.params.light);
-      light.on = false;
-      await client.lights.save(light);
+    console.debug('processing event', JSON.stringify(event));
+
+    let lightParams;
+    if (event.params.lights) {
+      lightParams = event.params.lights;
     }
     else {
-      console.warn('unrecognized event type', event.type);
+      lightParams = [event.params]
+    }
+
+    for (let lightParam of lightParams) {
+
+      const light = lights.find(light => light.name === lightParam.light);
+      if (light) {
+        if (event.type === 'on') {
+          console.debug('Switching on light', light.name);
+          light.on = true;
+          if (lightParam.brightness) {
+            light.brightness = Math.max(0, Math.min(255, lightParam.brightness));
+          }
+          if (lightParam.hue) {
+            light.hue = Math.max(0, Math.min(65535, lightParam.hue));
+          }
+          if (lightParam.saturation) {
+            light.saturation = Math.max(0, Math.min(254, lightParam.saturation));
+          }
+          if (lightParam.colorTemp) {
+            light.colorTemp = Math.max(153, Math.min(500, lightParam.colorTemp));
+          }
+          await client.lights.save(light);
+        }
+        else if (event.type === 'off') {
+          console.debug('Switching off light', light.name);
+          light.on = false;
+          await client.lights.save(light);
+        }
+        else {
+          console.warn('unrecognized event type', event.type);
+        }
+      }
+      else {
+        console.warn('unrecognized light', lightParam.light);
+      }
     }
   }
 
@@ -115,7 +133,11 @@ const connectAndExecute = async () => {
 
   if (!settings.server) {
     // run once and exit
-    connectAndExecute();
+    try {
+      connectAndExecute();
+    } catch (err) {
+      console.error('Failed to execute', err);
+    }
   }
   else {
     // run forever
@@ -123,9 +145,19 @@ const connectAndExecute = async () => {
     const millisUntilNearestMinute = DateTime.now().plus({ minutes: 1 }).startOf('minute').toMillis() - DateTime.now().toMillis();
     // wait until on the start of the minute
     setTimeout(async () => {
-      await connectAndExecute();
+      try {
+        await connectAndExecute();
+      } catch (err) {
+        console.error('Failed to execute', err);
+      }
       // then repeat every one minute
-      setInterval(() => { connectAndExecute() }, 60 * 1000);
+      setInterval(() => {
+        try {
+          connectAndExecute()
+        } catch (err) {
+          console.error('Failed to execute', err);
+        }
+      }, 60 * 1000);
     }, millisUntilNearestMinute);
   }
 
