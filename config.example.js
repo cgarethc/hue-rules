@@ -4,7 +4,7 @@ exports.settings = {
 
 exports.bridge = {
   host: '123.0.12.34',          // IP or hostname of the Hue bridge on the local network
-  username: 'bridgeusername',   // Optional at first: if left out, we can help you create one
+  username: 'bridgeusername',   // Required
   port: 80,                     // Optional port of the Hue bridge on the local network
   timeout: 15000,               // Optional, Hue connection timeout in milliseconds (15000 is the default)
 };
