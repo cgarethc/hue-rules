@@ -4,13 +4,14 @@ const luxon = require('luxon');
 const DateTime = luxon.DateTime;
 const fs = require('fs');
 
-if(!fs.existsSync('./config.js')) {
+if (!fs.existsSync('./config.js')) {
   console.log('Please create a config.js file in the root directory with your bridge configuration and rules: see config.example.js');
   process.exit(2);
 }
 
 const bridgeConfig = require('./config').bridge;
 const rules = require('./config').rules;
+const settings = require('./config').settings;
 
 if (!bridgeConfig || !bridgeConfig.host || !bridgeConfig.username) {
   console.error('Please provide a host and username in config.js');
@@ -21,7 +22,7 @@ if (!rules || !Array.isArray(rules)) {
   process.exit(2);
 }
 
-(async () => {
+const connectAndExecute = async () => {
   const client = new huejay.Client(
     bridgeConfig
   );
@@ -46,17 +47,17 @@ if (!rules || !Array.isArray(rules)) {
   const lights = await client.lights.getAll();
   const facts = {};
   for (let light of lights) {
-    facts[light.name] = {on: light.on, hue: light.hue, brightness: light.brightness};
+    facts[light.name] = { on: light.on, hue: light.hue, brightness: light.brightness };
   }
 
   const groups = await client.groups.getAll();
   for (let group of groups) {
     let groupName = group.name;
     // de-dupe if the group and a light share a name
-    if(facts[groupName]) {
+    if (facts[groupName]) {
       groupName = `Group ${groupName}`;
     }
-    facts[groupName] = {anyOn: group.anyOn, allOn: group.allOn};
+    facts[groupName] = { anyOn: group.anyOn, allOn: group.allOn };
   }
 
   // time facts for writing time-dependent conditions
@@ -79,9 +80,9 @@ if (!rules || !Array.isArray(rules)) {
     console.debug('processing event', event);
     if (event.type === 'on') {
       const light = lights.find(light => light.name === event.params.light);
-      if(event.params.brightness){
+      if (event.params.brightness) {
         light.brightness = Math.max(0, Math.min(255, event.params.brightness));
-      }      
+      }
       light.on = true;
       await client.lights.save(light);
     }
@@ -90,9 +91,29 @@ if (!rules || !Array.isArray(rules)) {
       light.on = false;
       await client.lights.save(light);
     }
-    else{
+    else {
       console.warn('unrecognized event type', event.type);
     }
+  }
+
+}
+
+(async () => {
+
+  if (!settings.server) {
+    // run once and exit
+    connectAndExecute();
+  }
+  else {
+    // run forever
+    // find millis until the next minute and zero seconds
+    const millisUntilNearestMinute = DateTime.now().plus({ minutes: 1 }).startOf('minute').toMillis() - DateTime.now().toMillis();
+    // wait until on the start of the minute
+    setTimeout(async () => {
+      await connectAndExecute();
+      // then repeat every one minute
+      setInterval(() => { connectAndExecute() }, 60 * 1000);
+    }, millisUntilNearestMinute);
   }
 
 })();

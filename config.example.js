@@ -1,8 +1,12 @@
+exports.settings = {
+  server: true // if false, run once and exit. If true, stay running and evaluate the rules every minute
+};
+
 exports.bridge = {
-  host: '123.0.12.34',         
+  host: '123.0.12.34',          // IP or hostname of the Hue bridge on the local network
   username: 'bridgeusername',   // Optional at first: if left out, we can help you create one
-  port: 80,                     // Optional
-  timeout: 15000,               // Optional, timeout in milliseconds (15000 is the default)
+  port: 80,                     // Optional port of the Hue bridge on the local network
+  timeout: 15000,               // Optional, Hue connection timeout in milliseconds (15000 is the default)
 };
 
 // see https://github.com/cachecontrol/json-rules-engine
