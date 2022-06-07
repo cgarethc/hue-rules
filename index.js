@@ -41,7 +41,6 @@ const connectAndExecute = async () => {
   }
   catch (err) {
     console.error('Failed to connect to the Hue bridge', err);
-    process.exit(2);
   }
 
   const lights = await client.lights.getAll();
