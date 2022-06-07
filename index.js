@@ -33,16 +33,6 @@ const connectAndExecute = async () => {
     engine.addRule(rule);
   }
 
-
-  try {
-    console.log('Testing connection...')
-    await client.bridge.ping()
-    console.log('Successful');
-  }
-  catch (err) {
-    console.error('Failed to connect to the Hue bridge', err);
-  }
-
   const lights = await client.lights.getAll();
   const facts = {};
   for (let light of lights) {
