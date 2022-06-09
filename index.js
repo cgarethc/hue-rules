@@ -33,24 +33,37 @@ const connectAndExecute = async () => {
     engine.addRule(rule);
   }
 
-  const lights = await client.lights.getAll();
   const facts = {};
-  for (let light of lights) {
-    facts[light.name] = {
-      on: light.on, reachable: light.reachable,
-      hue: light.hue, saturation: light.saturation,
-      brightness: light.brightness, colorTemp: light.colorTemp
-    };
+
+  try {
+    const lights = await client.lights.getAll();
+    for (let light of lights) {
+      facts[light.name] = {
+        on: light.on, reachable: light.reachable,
+        hue: light.hue, saturation: light.saturation,
+        brightness: light.brightness, colorTemp: light.colorTemp
+      };
+    }
+  }
+  catch (err) {
+    console.warn('Failed to fetch the lights list for the facts, giving up', err);
+    return;
   }
 
-  const groups = await client.groups.getAll();
-  for (let group of groups) {
-    let groupName = group.name;
-    // de-dupe if the group and a light share a name
-    if (facts[groupName]) {
-      groupName = `Group ${groupName}`;
+  try {
+    const groups = await client.groups.getAll();
+    for (let group of groups) {
+      let groupName = group.name;
+      // de-dupe if the group and a light share a name
+      if (facts[groupName]) {
+        groupName = `Group ${groupName}`;
+      }
+      facts[groupName] = { anyOn: group.anyOn, allOn: group.allOn };
     }
-    facts[groupName] = { anyOn: group.anyOn, allOn: group.allOn };
+  }
+  catch (err) {
+    console.warn('Failed to fetch the groups list for the facts, giving up', err);
+    return;
   }
 
   // time facts for writing time-dependent conditions
@@ -65,55 +78,69 @@ const connectAndExecute = async () => {
   facts.weekNumber = now.weekNumber;
   facts.isoTime = now.toISOTime();
 
-  console.info('All facts', facts);
+  console.debug('All facts', facts);
 
-  const { events } = await engine.run(facts);
+  try {
+    const { events } = await engine.run(facts);
 
-  for (let event of events) {
-    console.debug('processing event', JSON.stringify(event));
+    for (let event of events) {
+      console.debug('processing event', JSON.stringify(event));
 
-    let lightParams;
-    if (event.params.lights) {
-      lightParams = event.params.lights;
-    }
-    else {
-      lightParams = [event.params]
-    }
-
-    for (let lightParam of lightParams) {
-
-      const light = lights.find(light => light.name === lightParam.light);
-      if (light) {
-        if (event.type === 'on') {
-          console.debug('Switching on light', light.name);
-          light.on = true;
-          if (lightParam.brightness) {
-            light.brightness = Math.max(0, Math.min(255, lightParam.brightness));
-          }
-          if (lightParam.hue) {
-            light.hue = Math.max(0, Math.min(65535, lightParam.hue));
-          }
-          if (lightParam.saturation) {
-            light.saturation = Math.max(0, Math.min(254, lightParam.saturation));
-          }
-          if (lightParam.colorTemp) {
-            light.colorTemp = Math.max(153, Math.min(500, lightParam.colorTemp));
-          }
-          await client.lights.save(light);
-        }
-        else if (event.type === 'off') {
-          console.debug('Switching off light', light.name);
-          light.on = false;
-          await client.lights.save(light);
-        }
-        else {
-          console.warn('unrecognized event type', event.type);
-        }
+      let lightParams;
+      if (event.params.lights) {
+        lightParams = event.params.lights;
       }
       else {
-        console.warn('unrecognized light', lightParam.light);
+        lightParams = [event.params]
+      }
+
+      for (let lightParam of lightParams) {
+
+        const light = lights.find(light => light.name === lightParam.light);
+        if (light) {
+          if (event.type === 'on') {
+            console.info('Switching on light', light.name);
+            light.on = true;
+            if (lightParam.brightness) {
+              light.brightness = Math.max(0, Math.min(255, lightParam.brightness));
+            }
+            if (lightParam.hue) {
+              light.hue = Math.max(0, Math.min(65535, lightParam.hue));
+            }
+            if (lightParam.saturation) {
+              light.saturation = Math.max(0, Math.min(254, lightParam.saturation));
+            }
+            if (lightParam.colorTemp) {
+              light.colorTemp = Math.max(153, Math.min(500, lightParam.colorTemp));
+            }
+            try {
+              await client.lights.save(light);
+            }
+            catch (err) {
+              console.warn('Failed to save light', light.name, err);
+            }
+          }
+          else if (event.type === 'off') {
+            console.info('Switching off light', light.name);
+            light.on = false;
+            try {
+              await client.lights.save(light);
+            }
+            catch (err) {
+              console.warn('Failed to save light', light.name, err);
+            }
+          }
+          else {
+            console.warn('unrecognized event type', event.type);
+          }
+        }
+        else {
+          console.warn('unrecognized light', lightParam.light);
+        }
       }
     }
+  } catch (err) {
+    logger.error('Failed to execute rules', err);
   }
 
 }
