@@ -1,5 +1,7 @@
 exports.settings = {
-  server: true // if false, run once and exit. If true, stay running and evaluate the rules every minute
+  server: true, // if false, run once and exit (e.g. if you'd rather call it from Cron). If true, stay running and evaluate the rules every minute
+  latitude: 174.76333, // optional: latitude of your location, used to generate a sunrise and sunset fact
+  longitude: -36.84846, // optional: longitude of your location, used to generate a sunrise and sunset fact
 };
 
 exports.bridge = {

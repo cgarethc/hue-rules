@@ -3,6 +3,7 @@ const { Engine } = require('json-rules-engine');
 const luxon = require('luxon');
 const DateTime = luxon.DateTime;
 const fs = require('fs');
+const request = require('superagent');
 
 if (!fs.existsSync('./config.js')) {
   console.log('Please create a config.js file in the root directory with your bridge configuration and rules: see config.example.js');
@@ -66,6 +67,22 @@ const connectAndExecute = async () => {
     return;
   }
 
+  // sunrise and sunset facts
+  if (settings.latitude && settings.longitude) {
+    try {
+      const res = await request.get(`https://api.sunrise-sunset.org/json?lat=${settings.latitude}&lng=${settings.longitude}&date=today`);
+      if (res.body && res.body.results) {
+        const sunrise = DateTime.fromFormat(res.body.results.sunrise, 'h:m:s a').toMillis();
+        const sunset = DateTime.fromFormat(res.body.results.sunset, 'h:m:s a').toMillis();
+        facts.sunrise = sunrise;
+        facts.sunset = sunset;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch the sunrise and sunset facts, giving up', err);
+      return;
+    }
+  }
+
   // time facts for writing time-dependent conditions
   const now = DateTime.now();
   facts.year = now.year;
@@ -77,6 +94,7 @@ const connectAndExecute = async () => {
   facts.dayOfWeek = now.weekdayShort;
   facts.weekNumber = now.weekNumber;
   facts.isoTime = now.toISOTime();
+  facts.millis = now.toMillis();
 
   console.debug('All facts', facts);
 
@@ -159,6 +177,7 @@ const connectAndExecute = async () => {
     // run forever
     // find millis until the next minute and zero seconds
     const millisUntilNearestMinute = DateTime.now().plus({ minutes: 1 }).startOf('minute').toMillis() - DateTime.now().toMillis();
+    console.info('Starting in', Math.round(millisUntilNearestMinute / 1000), 'seconds');
     // wait until on the start of the minute
     setTimeout(async () => {
       try {
