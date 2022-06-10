@@ -1,2 +1,6 @@
-{hour > 20, [Living room] allOff, [Kitchen night light] off} [Kitchen night light] on
-{hour >= 21, hour < 5, [Stair light] on, [Stair light] brightness > 20} [Stair light] brightness 16
+{hour gte 22,<Living room> any} <Living room> off
+{hour gte 20,<Living room> none,[Kitchen night light] off} [Kitchen night light] on
+{hour gte 5,hour lt 20,<Living room> any,[Kitchen night light] on} [Kitchen night light] off
+{hour gte 21,hour lt 5,[Stair light] on,[Stair light] brightness gt 20} [Stair light] brightness 16
+{sinceSunrise gt 1,<Living room> any} <Living room> off
+{sinceSunset gt -30,<Living room> none} [Lounge light] brightness 254

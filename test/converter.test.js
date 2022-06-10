@@ -57,3 +57,4 @@ test('test longer rule', () => {
   expect(result.event.type).toEqual('off');
   expect(result.event.params.light).toEqual('Lounge lamp');
 });
+

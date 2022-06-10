@@ -26,6 +26,12 @@ test('test parser', () => {
   expect(result[2]).toEqual({light: 'Kitchen night light', state: 'on'});
 });
 
+test('negative cases', () => {
+  let result;
+  result = parser.parse('{sinceSunset gt -30} [Lounge lamp] on');
+  expect(result[0][1][0]).toEqual({ "fact": "sinceSunset", "operator": "gt", "value": -30 });
+});
+
 test('invalid cases', () => {
   let result;
   expect(() => {

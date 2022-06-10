@@ -34,7 +34,9 @@ property
   = 'brightness' / 'colorTemp' / 'hue' / 'saturation'
 
 fact 
-  = 'hour'/'minute'/'second'/'day'/'month'/'year'/'weekday'/'weekNumber'/'isoTime'/'millis'/'sunrise'/'sunset'
+  = 'hour'/'minute'/'second'/'day'/'month'/'year'/'weekday'/'weekNumber'
+  /'isoTime'/'millis'
+  /'sinceSunrise'/'sinceSunset'/'sunrise'/'sunset'
 
 light
   = '[' name:[^\]]+ ']' {return name.join('')}
@@ -43,6 +45,6 @@ room
   = '<' name:[^>]+ '>' {return name.join('')}
 
 numbervalue
-  = digits:[0-9]+ {return parseInt(digits.join(''))}
+  = digits:[0-9\-]+ {return parseInt(digits.join(''))}
 
 

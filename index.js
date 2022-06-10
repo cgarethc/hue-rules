@@ -5,6 +5,8 @@ const DateTime = luxon.DateTime;
 const fs = require('fs');
 const request = require('superagent');
 
+const converter = require('./converter');
+
 if (!fs.existsSync('./config.js')) {
   console.log('Please create a config.js file in the root directory with your bridge configuration and rules: see config.example.js');
   process.exit(2);
@@ -18,8 +20,8 @@ if (!bridgeConfig || !bridgeConfig.host || !bridgeConfig.username) {
   console.error('Please provide a host and username in config.js');
   process.exit(2);
 }
-if (!rules || !Array.isArray(rules)) {
-  console.error('Please provide at least one rule in config.js');
+if (!rules || !Array.isArray(rules) && !fs.existsSync('./rules.hue')) {
+  console.error('Please provide at least one rule in config.js or a rules.hue file');
   process.exit(2);
 }
 
@@ -29,9 +31,25 @@ const connectAndExecute = async () => {
   );
 
   const engine = new Engine();
-  for (let rule of rules) {
-    console.debug('Adding rule:', rule);
-    engine.addRule(rule);
+
+  if (fs.existsSync('./rules.hue')) {
+    const rulesLines = fs.readFileSync('./rules.hue', 'utf8').split('\n');
+    for (let ruleLine of rulesLines) {
+      const rule = converter.convert(ruleLine);
+      if (rule) {
+        console.debug('Adding rule:', JSON.stringify(rule));
+        engine.addRule(rule);
+      }
+      else {
+        console.warn('Could not parse rule:', ruleLine);
+      }
+    }
+  }
+  else {
+    for (let rule of rules) {
+      console.debug('Adding rule:', JSON.stringify(rule));
+      engine.addRule(rule);
+    }
   }
 
   const facts = {};
@@ -69,15 +87,19 @@ const connectAndExecute = async () => {
     return;
   }
 
+  const now = DateTime.now();
+
   // sunrise and sunset facts
   if (settings.latitude && settings.longitude) {
     try {
-      const res = await request.get(`https://api.sunrise-sunset.org/json?lat=${settings.latitude}&lng=${settings.longitude}&date=today`);
+      const res = await request.get(`https://api.sunrise-sunset.org/json?lat=${settings.latitude}&long=${settings.longitude}`);
       if (res.body && res.body.results) {
-        const sunrise = DateTime.fromFormat(res.body.results.sunrise, 'h:m:s a').toMillis();
-        const sunset = DateTime.fromFormat(res.body.results.sunset, 'h:m:s a').toMillis();
-        facts.sunrise = sunrise;
-        facts.sunset = sunset;
+        const sunrise = DateTime.fromFormat(res.body.results.sunrise, 'h:m:s a');
+        const sunset = DateTime.fromFormat(res.body.results.sunset, 'h:m:s a');
+        facts.sunrise = sunrise.toMillis();
+        facts.sunset = sunset.toMillis();
+        facts.sinceSunrise = Math.round((now.toMillis() - facts.sunrise) / 1000 / 60);
+        facts.sinceSunset = Math.round((now.toMillis() - facts.sunset) / 1000 / 60);
       }
     } catch (err) {
       console.warn('Failed to fetch the sunrise and sunset facts, giving up', err);
@@ -86,7 +108,6 @@ const connectAndExecute = async () => {
   }
 
   // time facts for writing time-dependent conditions
-  const now = DateTime.now();
   facts.year = now.year;
   facts.month = now.month;
   facts.day = now.day;
@@ -179,8 +200,14 @@ const connectAndExecute = async () => {
   else {
     // run forever
     // find millis until the next minute and zero seconds
-    const millisUntilNearestMinute = DateTime.now().plus({ minutes: 1 }).startOf('minute').toMillis() - DateTime.now().toMillis();
-    console.info('Starting in', Math.round(millisUntilNearestMinute / 1000), 'seconds');
+    let millisUntilNearestMinute;
+    if (settings.skipwait) {
+      millisUntilNearestMinute = 0;
+    }
+    else {
+      const millisUntilNearestMinute = DateTime.now().plus({ minutes: 1 }).startOf('minute').toMillis() - DateTime.now().toMillis();
+      console.info('Starting in', Math.round(millisUntilNearestMinute / 1000), 'seconds');
+    }
     // wait until on the start of the minute
     setTimeout(async () => {
       try {
