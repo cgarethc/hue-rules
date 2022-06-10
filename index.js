@@ -36,8 +36,9 @@ const connectAndExecute = async () => {
 
   const facts = {};
 
+  let lights;
   try {
-    const lights = await client.lights.getAll();
+    lights = await client.lights.getAll();
     for (let light of lights) {
       facts[light.name] = {
         on: light.on, reachable: light.reachable,
@@ -51,8 +52,9 @@ const connectAndExecute = async () => {
     return;
   }
 
+  let groups;
   try {
-    const groups = await client.groups.getAll();
+    groups = await client.groups.getAll();
     for (let group of groups) {
       let groupName = group.name;
       // de-dupe if the group and a light share a name
