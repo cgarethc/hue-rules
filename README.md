@@ -9,14 +9,50 @@ Take a copy of `config.example.js` and name it `config.js`. The example config i
 ```sh
 npm install
 cp config.example.js config.js
+cp rules.example.hue rules.hue
 node index.js
 ```
 
 ## Configuration
 
-The rules engine is [JSON-rules-engine on Github](https://github.com/cachecontrol/json-rules-engine). The config includes a block for specifying an array of rules in that format.
+There are two ways to set up the rules:
 
-### Events
+* a simplified rules format in the rules.hue file
+* the native format that the rules engine uses, specified in a block in config.js
+
+If you are using the full native format, there is an example in the config.js and the actual rules engine is [JSON-rules-engine on Github](https://github.com/cachecontrol/json-rules-engine).
+
+### Using the simplified format
+
+The rules.hue file has one rule per line. Each rule is a list of comma-separated conditions inside curly braces, followed by an event.
+
+The full grammar is in the parser.pegjs file. The condition can be:
+
+* a light or room followed by an on or off state, e.g. `[Lounge light] on` or `<Living room> all`
+* the property of a light (e.g. brightness) along with an operator and value, e.g. `[Lounge light] brightness gt 20`
+* a time-based fact along with an operator and value, e.g. `hour lte 21`
+
+Valid syntax:
+* The operators are `eq lt gt lte gte`
+* The light states are `on off`
+* The room states are `all any none`
+* The properties are `brightness colorTemp hue saturation`
+* The time-based facts are `day month year hour minute second weekday weekNumber sinceSunrise sinceSunset`
+
+Note that sinceSunrise and sinceSunset are the number of seconds since that time. If it hasn't occurred yet on that day, it will be negative.
+
+The events can be:
+
+* a light followed by a state, e.g. `[Lounge light] on`
+* a light followed by a property and a value, e.g. `[Lounge light] colorTemp 120`
+
+Here's an example of a complete rule that will turn on the kitchen night light if it is off, there are no lights on in the living room, and it's 8pm or later:
+
+`{hour gte 20,<Living room> none,[Kitchen night light] off} [Kitchen night light] on`
+
+### Using the rules engine format
+
+#### Events
 
 There are two event types that can be included: "on" and "off". Each needs the name of one or more lights.
 The "on" event can include:
@@ -25,7 +61,7 @@ The "on" event can include:
 * a colorTemp (for white to yellow lights)
 * hue and saturation (for full colour lights)
 
-### Conditions
+#### Conditions
 
 The conditions are based on facts. The facts include the state of the lights and rooms, and information about the current time. E.g.:
 

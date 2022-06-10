@@ -2,6 +2,7 @@ exports.settings = {
   server: true, // if false, run once and exit (e.g. if you'd rather call it from Cron). If true, stay running and evaluate the rules every minute
   latitude: 174.76333, // optional: latitude of your location, used to generate a sunrise and sunset fact
   longitude: -36.84846, // optional: longitude of your location, used to generate a sunrise and sunset fact
+  skipwait: false // optional: if true, don't wait for the first second of the minute before starting
 };
 
 exports.bridge = {
@@ -11,8 +12,10 @@ exports.bridge = {
   timeout: 15000,               // Optional, Hue connection timeout in milliseconds (15000 is the default)
 };
 
+// optional - can also be specified in the rules.hue file
 // see https://github.com/cachecontrol/json-rules-engine
 // event types are "on" and "off"
+/*
 exports.rules = [
   {
     conditions: {
@@ -61,3 +64,4 @@ exports.rules = [
     }
   }
 ];
+*/

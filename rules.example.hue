@@ -1,0 +1,3 @@
+{hour gte 22,<Living room> any} <Living room> off
+{hour gte 20,<Living room> none,[Kitchen night light] off} [Kitchen night light] on
+{sinceSunrise gt 1,<Living room> any} <Living room> off
