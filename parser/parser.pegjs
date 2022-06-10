@@ -20,7 +20,7 @@ condition
   / light:light ' ' state:state {return {light, state}}
 
 operator
-  = 'eq' / 'gt' / 'lt' / 'lte' / 'gte' / 'ne'
+  = 'lte' / 'gte' / 'eq' / 'gt' / 'lt' / 'ne'
 
 state
   = 'on' / 'off'
