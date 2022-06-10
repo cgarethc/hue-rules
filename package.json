@@ -7,6 +7,10 @@
     "type": "git",
     "url": "git+https://github.com/cgarethc/hue-rules.git"
   },
+  "scripts": {
+    "test": "node node_modules/jest/bin/jest.js test",
+    "parser": "pegjs parser/parser.pegjs"
+  },
   "author": "",
   "license": "MIT",
   "bugs": {
@@ -18,5 +22,8 @@
     "json-rules-engine": "^6.1.2",
     "luxon": "^2.4.0",
     "superagent": "^7.1.6"
+  },
+  "devDependencies": {
+    "jest": "^28.1.1"
   }
 }
