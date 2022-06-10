@@ -1,5 +1,12 @@
 start
-  = conditions
+  = rule
+
+rule
+  = conditions ' ' event
+
+event
+  = light:light ' ' state:state {return {light, state}}
+  / light:light ' ' property:property ' ' value:numbervalue {return {light, property, value}}
 
 conditions
   = '{' conditionlist '}'
@@ -13,7 +20,7 @@ condition
   / light:light ' ' state:state {return {light, state}}
 
 operator
-  = 'eq' / 'gt' / 'lt'
+  = 'eq' / 'gt' / 'lt' / 'lte' / 'gte' / 'ne'
 
 state
   = 'on' / 'off'
@@ -22,7 +29,7 @@ property
   = 'brightness' / 'colorTemp' / 'hue' / 'saturation'
 
 fact 
-  = 'hour'/'minute'/light 
+  = 'hour'/'minute'/'second'/'day'/'month'/'year'/'dayOfWeek'/'weekNumber'/'isoTime'/'millis'/'sunrise'/'sunset'
 
 light
   = '[' name:[^\]]+ ']' {return name.join('')}
