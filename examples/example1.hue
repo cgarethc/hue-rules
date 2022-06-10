@@ -1,0 +1,2 @@
+{hour > 20, [Living room] allOff, [Kitchen night light] off} [Kitchen night light] on
+{hour >= 21, hour < 5, [Stair light] on, [Stair light] brightness > 20} [Stair light] brightness 16

@@ -6,6 +6,7 @@ rule
 
 event
   = light:light ' ' state:state {return {light, state}}
+  / room:room ' ' state:state {return {room, state}}
   / light:light ' ' property:property ' ' value:numbervalue {return {light, property, value}}
 
 conditions
@@ -18,6 +19,7 @@ condition
   = fact:fact ' ' operator:operator ' ' value:numbervalue {return {fact, operator, value}}
   / light:light ' ' property:property ' ' operator:operator ' ' value:numbervalue {return {light, property, operator, value}}
   / light:light ' ' state:state {return {light, state}}
+  / room:room ' ' state:roomstate {return {room, state}}
 
 operator
   = 'lte' / 'gte' / 'eq' / 'gt' / 'lt' / 'ne'
@@ -25,14 +27,20 @@ operator
 state
   = 'on' / 'off'
 
+roomstate
+  = 'any' / 'all' / 'none'
+
 property
   = 'brightness' / 'colorTemp' / 'hue' / 'saturation'
 
 fact 
-  = 'hour'/'minute'/'second'/'day'/'month'/'year'/'dayOfWeek'/'weekNumber'/'isoTime'/'millis'/'sunrise'/'sunset'
+  = 'hour'/'minute'/'second'/'day'/'month'/'year'/'weekday'/'weekNumber'/'isoTime'/'millis'/'sunrise'/'sunset'
 
 light
   = '[' name:[^\]]+ ']' {return name.join('')}
+
+room
+  = '<' name:[^>]+ '>' {return name.join('')}
 
 numbervalue
   = digits:[0-9]+ {return parseInt(digits.join(''))}

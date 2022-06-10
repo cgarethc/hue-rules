@@ -94,6 +94,7 @@ const connectAndExecute = async () => {
   facts.minute = now.minute;
   facts.second = now.second;
   facts.dayOfWeek = now.weekdayShort;
+  facts.weekday = now.weekday;
   facts.weekNumber = now.weekNumber;
   facts.isoTime = now.toISOTime();
   facts.millis = now.toMillis();

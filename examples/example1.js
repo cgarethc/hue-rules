@@ -4,7 +4,7 @@ exports.settings = {
 
 exports.bridge = {
   host: 'hue',
-  username: 'jq58M7Dm4fkrrmbrFa7HS0i0b6kDR-JP6nhb5QHN'
+  username: 'jq58M7Dm4fkrrmbrFa7HS0i0b6kDR-abcdefghijkl'
 };
 
 exports.rules = [

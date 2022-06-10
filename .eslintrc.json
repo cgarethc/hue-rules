@@ -12,6 +12,10 @@
         "ecmaVersion": 12
     },
     "rules": {
-      "no-unused-vars": 1
+      "no-unused-vars": 2,
+      "semicolon": [
+        "error",
+        "always"
+      ],
     }
 }
