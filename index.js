@@ -35,13 +35,19 @@ const connectAndExecute = async () => {
   if (fs.existsSync('./rules.hue')) {
     const rulesLines = fs.readFileSync('./rules.hue', 'utf8').split('\n');
     for (let ruleLine of rulesLines) {
-      const rule = converter.convert(ruleLine);
-      if (rule) {
-        console.debug('Adding rule:', JSON.stringify(rule));
-        engine.addRule(rule);
+      if (ruleLine.startsWith('#')) {
+        // it's a comment - ignore
+        console.debug('ignoring', ruleLine);
       }
       else {
-        console.warn('Could not parse rule:', ruleLine);
+        const rule = converter.convert(ruleLine);
+        if (rule) {
+          console.debug('Adding rule:', JSON.stringify(rule));
+          engine.addRule(rule);
+        }
+        else {
+          console.warn('Could not parse rule:', ruleLine);
+        }
       }
     }
   }
@@ -84,6 +90,15 @@ const connectAndExecute = async () => {
   }
   catch (err) {
     console.warn('Failed to fetch the groups list for the facts, giving up', err);
+    return;
+  }
+
+  let scenes;
+  try {
+    scenes = await client.scenes.getAll();
+  }
+  catch (err) {
+    console.warn('Failed to fetch the scenes list giving up', err);
     return;
   }
 
@@ -138,47 +153,91 @@ const connectAndExecute = async () => {
 
       for (let lightParam of lightParams) {
 
-        const light = lights.find(light => light.name === lightParam.light);
-        if (light) {
-          if (event.type === 'on') {
-            console.info('Switching on light', light.name);
-            light.on = true;
-            if (lightParam.brightness) {
-              light.brightness = Math.max(0, Math.min(255, lightParam.brightness));
+        if (lightParam.light) {
+          const light = lights.find(light => light.name === lightParam.light);
+          if (light) {
+            if (event.type === 'on') {
+              console.info('Switching on light', light.name);
+              light.on = true;
+              if (lightParam.brightness) {
+                light.brightness = Math.max(0, Math.min(255, lightParam.brightness));
+              }
+              if (lightParam.hue) {
+                light.hue = Math.max(0, Math.min(65535, lightParam.hue));
+              }
+              if (lightParam.saturation) {
+                light.saturation = Math.max(0, Math.min(254, lightParam.saturation));
+              }
+              if (lightParam.colorTemp) {
+                light.colorTemp = Math.max(153, Math.min(500, lightParam.colorTemp));
+              }
+              try {
+                await client.lights.save(light);
+              }
+              catch (err) {
+                console.warn('Failed to save light', light.name, err);
+              }
             }
-            if (lightParam.hue) {
-              light.hue = Math.max(0, Math.min(65535, lightParam.hue));
+            else if (event.type === 'off') {
+              console.info('Switching off light', light.name);
+              light.on = false;
+              try {
+                await client.lights.save(light);
+              }
+              catch (err) {
+                console.warn('Failed to save light', light.name, err);
+              }
             }
-            if (lightParam.saturation) {
-              light.saturation = Math.max(0, Math.min(254, lightParam.saturation));
-            }
-            if (lightParam.colorTemp) {
-              light.colorTemp = Math.max(153, Math.min(500, lightParam.colorTemp));
-            }
-            try {
-              await client.lights.save(light);
-            }
-            catch (err) {
-              console.warn('Failed to save light', light.name, err);
-            }
-          }
-          else if (event.type === 'off') {
-            console.info('Switching off light', light.name);
-            light.on = false;
-            try {
-              await client.lights.save(light);
-            }
-            catch (err) {
-              console.warn('Failed to save light', light.name, err);
+            else {
+              console.warn('unrecognized event type', event.type);
             }
           }
           else {
-            console.warn('unrecognized event type', event.type);
+            console.warn('unrecognized light', lightParam.light);
+          }
+        }
+        else if (lightParam.room) {
+          const room = groups.find(group => group.name === lightParam.room);
+          if (room) {
+            if (event.type === 'off') {
+              console.debug('Turning off room', lightParam.room);
+              room.on = false;
+              client.groups.save(room);
+            }
+            else if (event.type === 'on' && event.params.scene) {
+              console.debug('Turning on room', lightParam.room, 'with scene', event.params.scene);
+              room.on = true;
+              const matchingScene = scenes.find(scene => {
+                return scene.name === event.params.scene &&
+                  scene.lightIds.length === room.lightIds.length &&
+                  scene.lightIds.every(id => room.lightIds.includes(id));
+              });
+              if (matchingScene) {
+                room.scene = matchingScene;
+              }
+              else {
+                console.warn('Couldn\'t find scene', event.params.scene, 'for room', lightParam.room);
+              }
+
+              client.groups.save(room);
+            }
+            else if (event.type === 'on') {
+              console.debug('Turning on room', lightParam.room);
+              room.on = true;
+              client.groups.save(room);
+            }
+            else {
+              console.warn('unrecognized event type', event.type);
+            }
+          }
+          else {
+            console.warn('unrecognized room', lightParam.room);
           }
         }
         else {
-          console.warn('unrecognized light', lightParam.light);
+          logger.warn('No light or room in the event', event.params);
         }
+
       }
     }
   } catch (err) {

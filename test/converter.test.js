@@ -25,6 +25,31 @@ test('test simple light rule with light condition', () => {
   expect(result.event.params.light).toEqual('Lounge lamp');
 });
 
+test('test room events', () => {
+  let result = converter.convert('{[Kitchen light] on} <Living room> off');
+  expect(result.conditions.all).toBeDefined();
+  expect(result.conditions.all[0].fact).toEqual('Kitchen light');
+  expect(result.conditions.all[0].operator).toEqual('equal');
+  expect(result.conditions.all[0].value).toEqual(true);
+  expect(result.conditions.all[0].path).toEqual('$.on');
+
+  expect(result.event).toBeDefined();
+  expect(result.event.type).toEqual('off');
+  expect(result.event.params.room).toEqual('Living room');
+
+  result = converter.convert('{[Kitchen light] on} <Living room> "Reading time"');
+  expect(result.conditions.all).toBeDefined();
+  expect(result.conditions.all[0].fact).toEqual('Kitchen light');
+  expect(result.conditions.all[0].operator).toEqual('equal');
+  expect(result.conditions.all[0].value).toEqual(true);
+  expect(result.conditions.all[0].path).toEqual('$.on');
+
+  expect(result.event).toBeDefined();
+  expect(result.event.type).toEqual('on');
+  expect(result.event.params.room).toEqual('Living room');
+  expect(result.event.params.scene).toEqual('Reading time');
+});
+
 test('test simple room rule', () => {
   const result = converter.convert('{<Lounge> any} [Lounge lamp] brightness 150');
   expect(result.conditions.all).toBeDefined();

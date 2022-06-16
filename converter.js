@@ -70,7 +70,18 @@ exports.convert = (ruleAsText) => {
       jsonEvent = {
         type: event.state,
         params: {
-          light: event.light
+          light: event.light,
+          room: event.room,
+          scene: event.scene
+        }
+      };
+    }
+    else if(event.scene){
+      jsonEvent = {
+        type: 'on',
+        params: {
+          room: event.room,
+          scene: event.scene
         }
       };
     }

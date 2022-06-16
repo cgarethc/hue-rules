@@ -33,6 +33,7 @@ The full grammar is in the parser.pegjs file. The condition can be:
 * a time-based fact along with an operator and value, e.g. `hour lte 21`
 
 Valid syntax:
+
 * The operators are `eq lt gt lte gte`
 * The light states are `on off`
 * The room states are `all any none`
@@ -43,14 +44,15 @@ Note that sinceSunrise and sinceSunset are the number of seconds since that time
 
 The events can be:
 
-* a light followed by a state, e.g. `[Lounge light] on`
+* a light or room followed by a state, e.g. `[Lounge light] on`
 * a light followed by a property and a value, e.g. `[Lounge light] colorTemp 120`
+* a room followed by a scene name in double quotes, e.g. `<Living room> "Relax"`
 
 Here's an example of a complete rule that will turn on the kitchen night light if it is off, there are no lights on in the living room, and it's 8pm or later:
 
 `{hour gte 20,<Living room> none,[Kitchen night light] off} [Kitchen night light] on`
 
-### Using the rules engine format
+### Using the rules engine object format
 
 #### Events
 

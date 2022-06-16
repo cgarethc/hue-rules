@@ -6,6 +6,7 @@ rule
 
 event
   = light:light ' ' state:state {return {light, state}}
+  / room:room ' ' scene:scene {return {room, scene}}
   / room:room ' ' state:state {return {room, state}}
   / light:light ' ' property:property ' ' value:numbervalue {return {light, property, value}}
 
@@ -43,6 +44,9 @@ light
 
 room
   = '<' name:[^>]+ '>' {return name.join('')}
+
+scene
+  = '"' name:[^"]+ '"' {return name.join('')}
 
 numbervalue
   = digits:[0-9\-]+ {return parseInt(digits.join(''))}
