@@ -4,6 +4,7 @@ const luxon = require('luxon');
 const DateTime = luxon.DateTime;
 const fs = require('fs');
 const request = require('superagent');
+const SunCalc = require('suncalc2');
 
 const converter = require('./converter');
 
@@ -115,6 +116,7 @@ const connectAndExecute = async () => {
         facts.sunset = sunset.toMillis();
         facts.sinceSunrise = Math.round((now.toMillis() - facts.sunrise) / 1000 / 60);
         facts.sinceSunset = Math.round((now.toMillis() - facts.sunset) / 1000 / 60);
+        facts.moonIllumination = SunCalc.getMoonIllumination(now.toJSDate());
       }
     } catch (err) {
       console.warn('Failed to fetch the sunrise and sunset facts, giving up', err);

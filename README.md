@@ -112,7 +112,12 @@ The conditions are based on facts. The facts include the state of the lights and
   second: 39,
   dayOfWeek: 'Mon',
   weekNumber: 23,
-  isoTime: '10:43:39.270+12:00'
+  isoTime: '10:43:39.270+12:00',
+  moonIllumination: { 
+    fraction: 0.9066002352965129, /* 0 new moon 1.0 full moon */
+    phase: 0.5988616246048384, /* 0/1 New Moon < 0.25 waxing crescent < 0.5 waxing gibbous 0.5 full moon > 0.5 waning gibbous > 0.75 waning crescent */
+    angle: 1.4602920390886516
+  },
 }
 ```
 
