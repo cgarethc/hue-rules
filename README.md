@@ -47,6 +47,7 @@ The events can be:
 * a light or room followed by a state, e.g. `[Lounge light] on`
 * a light followed by a property and a value, e.g. `[Lounge light] colorTemp 120`
 * a room followed by a scene name in double quotes, e.g. `<Living room> "Relax"`
+* a light followed by a state and a transiton time in minutes, e.g. `[Lounge light] on transition 5`
 
 Here's an example of a complete rule that will turn on the kitchen night light if it is off, there are no lights on in the living room, and it's 8pm or later:
 

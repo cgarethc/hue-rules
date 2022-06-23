@@ -159,10 +159,13 @@ const connectAndExecute = async () => {
           const light = lights.find(light => light.name === lightParam.light);
           if (light) {
             if (event.type === 'on') {
-              console.info('Switching on light', light.name);
+              console.info('Switching on light', light.name, lightParam);
               light.on = true;
               if (lightParam.brightness) {
                 light.brightness = Math.max(0, Math.min(255, lightParam.brightness));
+              }
+              else{
+                light.brightness = 254; // has to be set to enable transition times
               }
               if (lightParam.hue) {
                 light.hue = Math.max(0, Math.min(65535, lightParam.hue));
@@ -173,6 +176,9 @@ const connectAndExecute = async () => {
               if (lightParam.colorTemp) {
                 light.colorTemp = Math.max(153, Math.min(500, lightParam.colorTemp));
               }
+              if (lightParam.transitionTime) {
+                light.transitionTime = lightParam.transitionTime;
+              }              
               try {
                 await client.lights.save(light);
               }
@@ -183,6 +189,9 @@ const connectAndExecute = async () => {
             else if (event.type === 'off') {
               console.info('Switching off light', light.name);
               light.on = false;
+              if(event.transitionTime){
+                room.transitionTime = event.transitionTime;
+              }
               try {
                 await client.lights.save(light);
               }
@@ -204,6 +213,9 @@ const connectAndExecute = async () => {
             if (event.type === 'off') {
               console.debug('Turning off room', lightParam.room);
               room.on = false;
+              if(event.transitionTime){
+                room.transitionTime = event.transitionTime;
+              }
               client.groups.save(room);
             }
             else if (event.type === 'on' && event.params.scene) {
@@ -216,6 +228,9 @@ const connectAndExecute = async () => {
               });
               if (matchingScene) {
                 room.scene = matchingScene;
+                if(event.transitionTime){
+                  room.transitionTime = event.transitionTime;
+                }
               }
               else {
                 console.warn('Couldn\'t find scene', event.params.scene, 'for room', lightParam.room);
@@ -226,6 +241,9 @@ const connectAndExecute = async () => {
             else if (event.type === 'on') {
               console.debug('Turning on room', lightParam.room);
               room.on = true;
+              if(event.transitionTime){
+                room.transitionTime = event.transitionTime;
+              }
               client.groups.save(room);
             }
             else {

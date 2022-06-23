@@ -10,6 +10,7 @@ test('test simple light rule', () => {
   expect(result.event).toBeDefined();
   expect(result.event.type).toEqual('off');
   expect(result.event.params.light).toEqual('Lounge lamp');
+  expect(result.event.params.transitionTime).toEqual(0);
 });
 
 test('test simple light rule with light condition', () => {

@@ -72,7 +72,8 @@ exports.convert = (ruleAsText) => {
         params: {
           light: event.light,
           room: event.room,
-          scene: event.scene
+          scene: event.scene,
+          transitionTime: event.transition * 60
         }
       };
     }
@@ -81,7 +82,8 @@ exports.convert = (ruleAsText) => {
         type: 'on',
         params: {
           room: event.room,
-          scene: event.scene
+          scene: event.scene,
+          transitionTime: event.transition * 60
         }
       };
     }
@@ -89,7 +91,8 @@ exports.convert = (ruleAsText) => {
       // modify property
       const propertyName = event.property;
       const eventParams = {
-        light: event.light
+        light: event.light,
+        transitionTime: event.transition * 60 
       }
       eventParams[propertyName] = event.value;
       jsonEvent = {
