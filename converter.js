@@ -23,12 +23,12 @@ exports.convert = (ruleAsText) => {
     for (let condition of conditions) {
       const jsonCondition = {};
 
-      if (condition.fact && condition.operator && condition.value) {
+      if (condition.fact && condition.operator && !isNaN(condition.value)) {
         jsonCondition.fact = condition.fact;
         jsonCondition.operator = operatorMapping[condition.operator];
         jsonCondition.value = condition.value;
       }
-      else if(condition.fact && condition.value){
+      else if (condition.fact && condition.value) {
         jsonCondition.fact = condition.fact;
         jsonCondition.operator = 'equal';
         jsonCondition.value = condition.value;
@@ -82,7 +82,7 @@ exports.convert = (ruleAsText) => {
         }
       };
     }
-    else if(event.scene){
+    else if (event.scene) {
       jsonEvent = {
         type: 'on',
         params: {
@@ -97,7 +97,7 @@ exports.convert = (ruleAsText) => {
       const propertyName = event.property;
       const eventParams = {
         light: event.light,
-        transitionTime: event.transition * 60 
+        transitionTime: event.transition * 60
       }
       eventParams[propertyName] = event.value;
       jsonEvent = {

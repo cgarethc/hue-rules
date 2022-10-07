@@ -97,3 +97,25 @@ test('test longer rule', () => {
   expect(result.event.params.light).toEqual('Lounge lamp');
 });
 
+test('negative tests', () => {
+  const result = converter.convert('{sinceSunset gt 0,sinceSunset lt 5,[Stair light] off} [Stair light] brightness 254');
+  expect(result.conditions.all).toBeDefined();
+  expect(result.conditions.all.length).toEqual(3);
+
+  expect(result.conditions.all[0].fact).toEqual('sinceSunset');
+  expect(result.conditions.all[0].operator).toEqual('greaterThan');
+  expect(result.conditions.all[0].value).toEqual(0);
+
+  expect(result.conditions.all[1].fact).toEqual('sinceSunset');
+  expect(result.conditions.all[1].operator).toEqual('lessThan');
+  expect(result.conditions.all[1].value).toEqual(5);
+
+  expect(result.conditions.all[2].fact).toEqual('Stair light');
+  expect(result.conditions.all[2].operator).toEqual('equal');
+  expect(result.conditions.all[2].value).toEqual(false);
+
+  expect(result.event).toBeDefined();
+  expect(result.event.type).toEqual('on');
+  expect(result.event.params.light).toEqual('Stair light');
+
+});
