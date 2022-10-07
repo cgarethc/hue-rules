@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "node node_modules/jest/bin/jest.js test",
-    "parser": "pegjs parser/parser.pegjs"
+    "parser": "npx pegjs parser/parser.pegjs"
   },
   "author": "",
   "license": "MIT",
@@ -21,8 +21,7 @@
     "huejay": "^1.9.0",
     "json-rules-engine": "^6.1.2",
     "luxon": "^2.4.0",
-    "suncalc2": "^1.8.1",
-    "superagent": "^7.1.6"
+    "suncalc2": "^1.8.1"
   },
   "devDependencies": {
     "jest": "^28.1.1"

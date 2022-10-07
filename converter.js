@@ -23,9 +23,14 @@ exports.convert = (ruleAsText) => {
     for (let condition of conditions) {
       const jsonCondition = {};
 
-      if (condition.fact) {
+      if (condition.fact && condition.operator && condition.value) {
         jsonCondition.fact = condition.fact;
         jsonCondition.operator = operatorMapping[condition.operator];
+        jsonCondition.value = condition.value;
+      }
+      else if(condition.fact && condition.value){
+        jsonCondition.fact = condition.fact;
+        jsonCondition.operator = 'equal';
         jsonCondition.value = condition.value;
       }
       else if (condition.room) {

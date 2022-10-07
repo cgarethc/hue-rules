@@ -13,6 +13,19 @@ test('test simple light rule', () => {
   expect(result.event.params.transitionTime).toEqual(0);
 });
 
+test('test on the rule', () => {
+  const result = converter.convert('{onTheTen true} [Lounge lamp] off');
+  expect(result.conditions.all).toBeDefined();
+  expect(result.conditions.all[0].fact).toEqual('onTheTen');
+  expect(result.conditions.all[0].operator).toEqual('equal');
+  expect(result.conditions.all[0].value).toEqual(true);
+
+  expect(result.event).toBeDefined();
+  expect(result.event.type).toEqual('off');
+  expect(result.event.params.light).toEqual('Lounge lamp');
+  expect(result.event.params.transitionTime).toEqual(0);
+});
+
 test('test simple light rule with light condition', () => {
   const result = converter.convert('{[Kitchen light] on} [Lounge lamp] off');
   expect(result.conditions.all).toBeDefined();

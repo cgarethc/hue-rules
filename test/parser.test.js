@@ -12,6 +12,11 @@ test('test parser', () => {
   expect(result[2]).toEqual({ room: 'Living room', state: 'off', transition: 0 });
   expect(result[0][1][1].length).toEqual(0);
 
+  result = parser.parse('{onTheFive true} <Living room> off');
+  expect(result[0][1][0]).toEqual({ "fact": "onTheFive", "value": true });
+  expect(result[2]).toEqual({ room: 'Living room', state: 'off', transition: 0 });
+  expect(result[0][1][1].length).toEqual(0);
+
   result = parser.parse('{hour lt 5} <Living room> "Reading time"');
   expect(result[0][1][0]).toEqual({ "fact": "hour", "operator": "lt", "value": 5 });
   expect(result[2]).toEqual({ room: 'Living room', scene: 'Reading time', transition: 0 });

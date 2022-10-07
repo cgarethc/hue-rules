@@ -34,11 +34,12 @@ The full grammar is in the parser.pegjs file. The condition can be:
 
 Valid syntax:
 
-* The operators are `eq lt gt lte gte`
+* The numeric operators are `eq lt gt lte gte` - booleans don't need an operator
 * The light states are `on off`
 * The room states are `all any none`
 * The properties are `brightness colorTemp hue saturation`
-* The time-based facts are `day month year hour minute second weekday weekNumber sinceSunrise sinceSunset`
+* The numeric time-based facts are `day month year hour minute second weekday weekNumber sinceSunrise sinceSunset`
+* The boolean time-based facts are `onTheHour onTheHalf onTheQuarter onTheTen onTheFive`
 
 Note that sinceSunrise and sinceSunset are the number of seconds since that time. If it hasn't occurred yet on that day, it will be negative.
 
@@ -49,9 +50,9 @@ The events can be:
 * a room followed by a scene name in double quotes, e.g. `<Living room> "Relax"`
 * a light followed by a state and a transiton time in minutes, e.g. `[Lounge light] on transition 5`
 
-Here's an example of a complete rule that will turn on the kitchen night light if it is off, there are no lights on in the living room, and it's 8pm or later:
+Here's an example of a complete rule that will turn on the kitchen night light if it is off, there are no lights on in the living room, it's 8pm or later, and it's on the quarter hour:
 
-`{hour gte 20,<Living room> none,[Kitchen night light] off} [Kitchen night light] on`
+`{hour gte 20,onTheQuarter true,<Living room> none,[Kitchen night light] off} [Kitchen night light] on`
 
 ### Using the rules engine object format
 

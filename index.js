@@ -3,10 +3,11 @@ const { Engine } = require('json-rules-engine');
 const luxon = require('luxon');
 const DateTime = luxon.DateTime;
 const fs = require('fs');
-const request = require('superagent');
 const SunCalc = require('suncalc2');
 
 const converter = require('./converter');
+
+const RULES_FILE = './rules.hue';
 
 if (!fs.existsSync('./config.js')) {
   console.log('Please create a config.js file in the root directory with your bridge configuration and rules: see config.example.js');
@@ -21,7 +22,7 @@ if (!bridgeConfig || !bridgeConfig.host || !bridgeConfig.username) {
   console.error('Please provide a host and username in config.js');
   process.exit(2);
 }
-if (!rules || !Array.isArray(rules) && !fs.existsSync('./rules.hue')) {
+if (!rules || !Array.isArray(rules) && !fs.existsSync(RULES_FILE)) {
   console.error('Please provide at least one rule in config.js or a rules.hue file');
   process.exit(2);
 }
@@ -33,8 +34,8 @@ const connectAndExecute = async () => {
 
   const engine = new Engine();
 
-  if (fs.existsSync('./rules.hue')) {
-    const rulesLines = fs.readFileSync('./rules.hue', 'utf8').split('\n');
+  if (fs.existsSync(RULES_FILE)) {
+    const rulesLines = fs.readFileSync(RULES_FILE, 'utf8').split('\n');
     for (let ruleLine of rulesLines) {
       if (ruleLine.startsWith('#')) {
         // it's a comment - ignore
@@ -108,16 +109,15 @@ const connectAndExecute = async () => {
   // sunrise and sunset facts
   if (settings.latitude && settings.longitude) {
     try {
-      const res = await request.get(`https://api.sunrise-sunset.org/json?lat=${settings.latitude}&long=${settings.longitude}`);
-      if (res.body && res.body.results) {
-        const sunrise = DateTime.fromFormat(res.body.results.sunrise, 'h:m:s a');
-        const sunset = DateTime.fromFormat(res.body.results.sunset, 'h:m:s a');
-        facts.sunrise = sunrise.toMillis();
-        facts.sunset = sunset.toMillis();
-        facts.sinceSunrise = Math.round((now.toMillis() - facts.sunrise) / 1000 / 60);
-        facts.sinceSunset = Math.round((now.toMillis() - facts.sunset) / 1000 / 60);
-        facts.moonIllumination = SunCalc.getMoonIllumination(now.toJSDate());
-      }
+      const sunTimes = SunCalc.getTimes(now, settings.latitude, settings.longitude);
+      const sunrise = DateTime.fromJSDate(sunTimes.sunrise);
+      const sunset = DateTime.fromJSDate(sunTimes.sunset);
+      facts.sunrise = sunrise.toMillis();
+      facts.sunset = sunset.toMillis();
+      facts.sinceSunrise = Math.round((now.toMillis() - facts.sunrise) / 1000 / 60);
+      facts.sinceSunset = Math.round((now.toMillis() - facts.sunset) / 1000 / 60);
+      facts.moonIllumination = SunCalc.getMoonIllumination(now.toJSDate());
+
     } catch (err) {
       console.warn('Failed to fetch the sunrise and sunset facts, giving up', err);
       return;
@@ -136,6 +136,11 @@ const connectAndExecute = async () => {
   facts.weekNumber = now.weekNumber;
   facts.isoTime = now.toISOTime();
   facts.millis = now.toMillis();
+  facts.onTheHour = now.minute % 60 === 0;
+  facts.onTheHalfHour = now.minute % 30 === 0;
+  facts.onTheQuarterHour = now.minute % 15 === 0;
+  facts.onTheTen = now.minute % 10 === 0;
+  facts.onTheFive = now.minute % 5 === 0;
 
   console.debug('All facts', facts);
 
@@ -164,7 +169,7 @@ const connectAndExecute = async () => {
               if (lightParam.brightness) {
                 light.brightness = Math.max(0, Math.min(255, lightParam.brightness));
               }
-              else{
+              else {
                 light.brightness = 254; // has to be set to enable transition times
               }
               if (lightParam.hue) {
@@ -178,7 +183,7 @@ const connectAndExecute = async () => {
               }
               if (lightParam.transitionTime) {
                 light.transitionTime = lightParam.transitionTime;
-              }              
+              }
               try {
                 await client.lights.save(light);
               }
@@ -189,7 +194,7 @@ const connectAndExecute = async () => {
             else if (event.type === 'off') {
               console.info('Switching off light', light.name);
               light.on = false;
-              if(event.transitionTime){
+              if (event.transitionTime) {
                 room.transitionTime = event.transitionTime;
               }
               try {
@@ -213,7 +218,7 @@ const connectAndExecute = async () => {
             if (event.type === 'off') {
               console.debug('Turning off room', lightParam.room);
               room.on = false;
-              if(event.transitionTime){
+              if (event.transitionTime) {
                 room.transitionTime = event.transitionTime;
               }
               client.groups.save(room);
@@ -228,7 +233,7 @@ const connectAndExecute = async () => {
               });
               if (matchingScene) {
                 room.scene = matchingScene;
-                if(event.transitionTime){
+                if (event.transitionTime) {
                   room.transitionTime = event.transitionTime;
                 }
               }
@@ -241,7 +246,7 @@ const connectAndExecute = async () => {
             else if (event.type === 'on') {
               console.debug('Turning on room', lightParam.room);
               room.on = true;
-              if(event.transitionTime){
+              if (event.transitionTime) {
                 room.transitionTime = event.transitionTime;
               }
               client.groups.save(room);

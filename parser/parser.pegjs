@@ -27,6 +27,7 @@ conditionlist
 
 condition
   = fact:fact ' ' operator:operator ' ' value:numbervalue {return {fact, operator, value}}
+  / fact:fact ' ' booleanvalue:booleanvalue {return {fact, value: booleanvalue}}
   / light:light ' ' property:property ' ' operator:operator ' ' value:numbervalue {return {light, property, operator, value}}
   / light:light ' ' state:state {return {light, state}}
   / room:room ' ' state:roomstate {return {room, state}}
@@ -47,6 +48,7 @@ fact
   = 'hour'/'minute'/'second'/'day'/'month'/'year'/'weekday'/'weekNumber'
   /'isoTime'/'millis'
   /'sinceSunrise'/'sinceSunset'/'sunrise'/'sunset'
+  /'onTheHour'/ 'onTheHalfHour'/'onTheQuarterHour'/'onTheTen'/'onTheFive'
 
 light
   = '[' name:[^\]]+ ']' {return name.join('')}
@@ -56,6 +58,10 @@ room
 
 scene
   = '"' name:[^"]+ '"' {return name.join('')}
+
+booleanvalue
+  = 'true' {return true}
+  / 'false' {return false}
 
 numbervalue
   = digits:[0-9\-]+ {return parseInt(digits.join(''))}
