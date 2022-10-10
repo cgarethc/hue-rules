@@ -6,8 +6,11 @@ const fs = require('fs');
 const SunCalc = require('suncalc2');
 
 const converter = require('./converter');
+const weather = require('./weather');
 
 const RULES_FILE = './rules.hue';
+
+let cloudCover;
 
 if (!fs.existsSync('./config.js')) {
   console.log('Please create a config.js file in the root directory with your bridge configuration and rules: see config.example.js');
@@ -17,12 +20,13 @@ if (!fs.existsSync('./config.js')) {
 const bridgeConfig = require('./config').bridge;
 const rules = require('./config').rules;
 const settings = require('./config').settings;
+const weatherSettings = require('./config').weather;
 
 if (!bridgeConfig || !bridgeConfig.host || !bridgeConfig.username) {
   console.error('Please provide a host and username in config.js');
   process.exit(2);
 }
-if (!rules || !Array.isArray(rules) && !fs.existsSync(RULES_FILE)) {
+if ((!rules || !Array.isArray(rules)) && !fs.existsSync(RULES_FILE)) {
   console.error('Please provide at least one rule in config.js or a rules.hue file');
   process.exit(2);
 }
@@ -141,6 +145,7 @@ const connectAndExecute = async () => {
   facts.onTheQuarterHour = now.minute % 15 === 0;
   facts.onTheTen = now.minute % 10 === 0;
   facts.onTheFive = now.minute % 5 === 0;
+  facts.cloudCover = cloudCover;
 
   console.debug('All facts', facts);
 
@@ -271,6 +276,16 @@ const connectAndExecute = async () => {
 
 }
 
+const updateWeather = async () => {
+  try {
+    const currentConditions = await weather.currentConditions(weatherSettings.location, weatherSettings.key)
+    cloudCover = currentConditions.cloudcover;
+    console.debug('Updated cloud cover from visualcrossing.com', cloudCover);
+  } catch (err) {
+    console.error('Failed to get weather', err);
+  }
+};
+
 (async () => {
 
   if (!settings.server) {
@@ -292,7 +307,7 @@ const connectAndExecute = async () => {
       const millisUntilNearestMinute = DateTime.now().plus({ minutes: 1 }).startOf('minute').toMillis() - DateTime.now().toMillis();
       console.info('Starting in', Math.round(millisUntilNearestMinute / 1000), 'seconds');
     }
-    // wait until on the start of the minute
+
     setTimeout(async () => {
       try {
         await connectAndExecute();
@@ -302,12 +317,20 @@ const connectAndExecute = async () => {
       // then repeat every one minute
       setInterval(() => {
         try {
-          connectAndExecute()
+          connectAndExecute();
         } catch (err) {
           console.error('Failed to execute', err);
         }
       }, 60 * 1000);
     }, millisUntilNearestMinute);
+  }
+
+  if (weatherSettings && weatherSettings.key && weatherSettings.location) {
+    updateWeather();
+    setInterval(() => {
+      console.log('30 minutes up, updating current weather');
+      updateWeather();
+    }, 30 * 60 * 1000);
   }
 
 })();

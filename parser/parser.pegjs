@@ -49,6 +49,7 @@ fact
   /'isoTime'/'millis'
   /'sinceSunrise'/'sinceSunset'/'sunrise'/'sunset'
   /'onTheHour'/ 'onTheHalfHour'/'onTheQuarterHour'/'onTheTen'/'onTheFive'
+  /'cloudCover'
 
 light
   = '[' name:[^\]]+ ']' {return name.join('')}

@@ -21,7 +21,8 @@
     "huejay": "^1.9.0",
     "json-rules-engine": "^6.1.2",
     "luxon": "^2.4.0",
-    "suncalc2": "^1.8.1"
+    "suncalc2": "^1.8.1",
+    "superagent": "^8.0.2"
   },
   "devDependencies": {
     "jest": "^28.1.1"

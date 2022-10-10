@@ -40,6 +40,7 @@ Valid syntax:
 * The properties are `brightness colorTemp hue saturation`
 * The numeric time-based facts are `day month year hour minute second weekday weekNumber sinceSunrise sinceSunset`
 * The boolean time-based facts are `onTheHour onTheHalf onTheQuarter onTheTen onTheFive`
+* Optional weather fact if visualcrossing.com is configured in config.js is `cloudCover` (0-100)
 
 Note that sinceSunrise and sinceSunset are the number of seconds since that time. If it hasn't occurred yet on that day, it will be negative.
 

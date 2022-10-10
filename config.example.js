@@ -12,6 +12,12 @@ exports.bridge = {
   timeout: 15000,               // Optional, Hue connection timeout in milliseconds (15000 is the default)
 };
 
+// optional - can be specified to enable the cloudCover fact by calling visualcrossing.com
+// exports.weather = {
+//   location: 'auckland', // visualcrossing.com location to use for weather data
+//   key: 'YOUR_API_KEY' // visualcrossing.com API key
+// }
+
 // optional - can also be specified in the rules.hue file
 // see https://github.com/cachecontrol/json-rules-engine
 // event types are "on" and "off"
